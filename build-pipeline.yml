@@ -7,9 +7,6 @@ pool:
   vmImage: 'ubuntu-latest'  # or 'ubuntu-latest' if you're targeting Linux
 variables:
   buildConfiguration: 'Release'
-  azureSubscription: 'serv-conn-1'  # e.g., 'AzureServiceConnection'
-  functionAppName: 'fa-dc-test-net8-inpro'          # e.g., 'my-funcapp-prod'
-  packagePath: '$(System.DefaultWorkingDirectory)/publish_output'
 
 steps:
 - task: UseDotNet@2
@@ -31,20 +28,3 @@ steps:
     command: 'build'
     projects: '**/*.csproj'
     arguments: '--configuration $(buildConfiguration)'
-
-- task: DotNetCoreCLI@2
-  displayName: 'Publish the Function App'
-  inputs:
-    command: 'publish'
-    publishWebProjects: false
-    projects: '**/*FunctionApp2.csproj'  # adjust to your project name
-    arguments: '--configuration $(buildConfiguration) --output $(packagePath)'
-    zipAfterPublish: true
-
-- task: AzureFunctionApp@2
-  displayName: 'Deploy to Azure Function App'
-  inputs:
-    azureSubscription: '$(azureSubscription)'
-    appType: 'functionApp'
-    appName: '$(functionAppName)'
-    package: '$(packagePath)/*.zip'
