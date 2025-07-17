@@ -25,31 +25,24 @@ steps:
     projects: '**/*.csproj'
 
 - task: DotNetCoreCLI@2
-  displayName: 'Publish the Function App'
+  displayName: 'Build the Function App'
   inputs:
-    command: 'publish'
-    publishWebProjects: false
-    projects: '**/*FunctionApp2.csproj'  # adjust to your project name
-    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
-    zipAfterPublish: true
+    command: 'build'
+    projects: '**/*.csproj'
+    arguments: '--configuration $(buildConfiguration)'
 
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish Artifact'
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: '$(artifactName)'
-    publishLocation: 'Container'
 - task: DotNetCoreCLI@2
   displayName: 'Publish the Function App'
   inputs:
     command: 'publish'
     publishWebProjects: false
-    projects: '**/*FunctionApp2.csproj'  # adjust to your project name
+    projects: '**/*FunctionApp2.csproj'  # Replace with your actual project name
     arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/publish'
-    zipAfterPublish: false  # we’ll zip manually after copying .so files
+    zipAfterPublish: false
 
 # ✅ Copy native .so libraries into the publish/bin directory
 - script: |
+    echo "Copying native libraries..."
     mkdir -p $(Build.ArtifactStagingDirectory)/publish/bin
     cp bin/*.so* $(Build.ArtifactStagingDirectory)/publish/bin/
   displayName: 'Copy native libraries to publish/bin'
