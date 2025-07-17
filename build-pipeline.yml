@@ -51,8 +51,8 @@ steps:
 - task: ArchiveFiles@2
   displayName: 'Create deployment zip'
   inputs:
-    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'  # ⬅️ zip the contents directly
-    includeRootFolder: false  # ⬅️ ensures no extra folder nesting
+    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'  # ✅ This is the folder containing host.json, bin/, etc.
+    includeRootFolder: false  # ✅ Ensures only the contents are zipped, not the folder itself
     archiveType: 'zip'
     archiveFile: '$(Build.ArtifactStagingDirectory)/functionapp.zip'
     replaceExistingArchive: true
