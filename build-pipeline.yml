@@ -37,12 +37,30 @@ steps:
     command: 'publish'
     publishWebProjects: false
     projects: '**/*FunctionApp2.csproj'  # adjust to your project name
-    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
-    zipAfterPublish: true
+    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/publish'
+    zipAfterPublish: false  # ⬅️ Disable auto-zipping so we can add native libs before packaging
 
+# ✅ Add this step to copy native .so libraries into the publish/bin directory
+- script: |
+    echo "Copying native libraries to publish/bin..."
+    mkdir -p $(Build.ArtifactStagingDirectory)/publish/bin
+    cp bin/*.so* $(Build.ArtifactStagingDirectory)/publish/bin/
+  displayName: 'Copy native libraries to publish/bin'
+
+# ✅ Add this step to manually zip the final deployment package
+- task: ArchiveFiles@2
+  displayName: 'Create deployment zip'
+  inputs:
+    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/publish'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/functionapp.zip'
+    replaceExistingArchive: true
+
+# ✅ Update this step to publish the zipped artifact instead of the raw folder
 - task: PublishBuildArtifacts@1
   displayName: 'Publish Artifact'
   inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/functionapp.zip'  # ⬅️ Publish the zip file
     ArtifactName: '$(artifactName)'
     publishLocation: 'Container'
