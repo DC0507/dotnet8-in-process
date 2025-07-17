@@ -37,13 +37,12 @@ steps:
     command: 'publish'
     publishWebProjects: false
     projects: '**/*FunctionApp2.csproj'  # adjust to your project name
-    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'  # ⬅️ publish directly to root
+    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
     zipAfterPublish: false  # ⬅️ disable auto-zip so we can add native libs before packaging
 
-# ✅ Copy native .so libraries into the bin directory inside the root
+# ✅ Copy native .so libraries into the same bin/ folder created by dotnet publish
 - script: |
     echo "Copying native libraries to bin/..."
-    mkdir -p $(Build.ArtifactStagingDirectory)/bin
     cp bin/*.so* $(Build.ArtifactStagingDirectory)/bin/
   displayName: 'Copy native libraries to bin'
 
@@ -51,8 +50,8 @@ steps:
 - task: ArchiveFiles@2
   displayName: 'Create deployment zip'
   inputs:
-    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'  # ✅ This is the folder containing host.json, bin/, etc.
-    includeRootFolder: false  # ✅ Ensures only the contents are zipped, not the folder itself
+    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'  # ⬅️ zip the contents directly
+    includeRootFolder: false  # ⬅️ ensures no extra folder nesting
     archiveType: 'zip'
     archiveFile: '$(Build.ArtifactStagingDirectory)/functionapp.zip'
     replaceExistingArchive: true
@@ -61,6 +60,6 @@ steps:
 - task: PublishBuildArtifacts@1
   displayName: 'Publish Artifact'
   inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)/functionapp.zip'  # ⬅️ publish the zip file
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)/functionapp.zip'
     ArtifactName: '$(artifactName)'
     publishLocation: 'Container'
