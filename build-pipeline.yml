@@ -36,22 +36,22 @@ steps:
   inputs:
     command: 'publish'
     publishWebProjects: false
-    projects: '**/*FunctionApp2.csproj'  # adjust to your project name
+    projects: '**/*FunctionApp2.csproj'  # 🔁 Replace with your actual project name
     arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
-    zipAfterPublish: false  # ⬅️ disable auto-zip so we can add native libs before packaging
+    zipAfterPublish: false  # ⛔ Disable auto-zip so we can add native libs before packaging
 
-# ✅ Copy native .so libraries into the same bin/ folder created by dotnet publish
+# ✅ Copy native .so libraries into the bin/ folder created by dotnet publish
 - script: |
     echo "Copying native libraries to bin/..."
-    cp bin/*.so* $(Build.ArtifactStagingDirectory)/bin/
+    rsync -av --ignore-existing bin/*.so* $(Build.ArtifactStagingDirectory)/bin/
   displayName: 'Copy native libraries to bin'
 
 # ✅ Zip only the contents of the artifact staging directory (not the folder itself)
 - task: ArchiveFiles@2
   displayName: 'Create deployment zip'
   inputs:
-    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'  # ⬅️ zip the contents directly
-    includeRootFolder: false  # ⬅️ ensures no extra folder nesting
+    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'  # ✅ Zip the contents only
+    includeRootFolder: false  # ✅ Avoid nesting the folder itself
     archiveType: 'zip'
     archiveFile: '$(Build.ArtifactStagingDirectory)/functionapp.zip'
     replaceExistingArchive: true
