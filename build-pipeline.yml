@@ -8,7 +8,7 @@ pool:
 
 variables:
   buildConfiguration: 'Release'
-  outputDir: '$(Build.ArtifactStagingDirectory)/publish'
+  outputDir: '$(Build.ArtifactStagingDirectory)'
 
 steps:
 - task: UseDotNet@2
