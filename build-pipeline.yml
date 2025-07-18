@@ -5,25 +5,39 @@ trigger:
 
 pool:
   vmImage: 'ubuntu-latest'
+
 steps:
+- task: UseDotNet@2
+  displayName: 'Use .NET 8 SDK'
+  inputs:
+    packageType: 'sdk'
+    version: '8.x.x'
+    installationPath: $(Agent.ToolsDirectory)/dotnet
+
 - script: |
-    dotnet restore
-    dotnet build --configuration Release
+    dotnet restore Cms.Functions.csproj
+    dotnet build Cms.Functions.csproj --configuration Release
+  displayName: 'Restore and Build'
+
 - task: DotNetCoreCLI@2
+  displayName: 'Publish Function App'
   inputs:
     command: publish
+    projects: 'Cms.Functions.csproj'
     arguments: '--configuration Release --output publish_output'
-    projects: '*.Cms.Functions.csproj'
     publishWebProjects: false
     modifyOutputPath: false
     zipAfterPublish: false
+
 - task: ArchiveFiles@2
-  displayName: "Archive files"
+  displayName: 'Archive files'
   inputs:
-    rootFolderOrFile: "$(System.DefaultWorkingDirectory)/publish_output"
+    rootFolderOrFile: '$(System.DefaultWorkingDirectory)/publish_output'
     includeRootFolder: false
-    archiveFile: "$(System.DefaultWorkingDirectory)/build$(Build.BuildId).zip"
+    archiveFile: '$(System.DefaultWorkingDirectory)/build$(Build.BuildId).zip'
+
 - task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact'
   inputs:
     PathtoPublish: '$(System.DefaultWorkingDirectory)/build$(Build.BuildId).zip'
     artifactName: 'drop'
