@@ -1,35 +1,57 @@
 using System;
 using System.IO;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using DinkToPdf;
+using DinkToPdf.Contracts;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace FunctionApp2
 {
-    public static class Function1
+    public class Function1
     {
-        [FunctionName("Function1")]
-        public static async Task<IActionResult> Run(
+        private readonly IConverter _converter;
+
+        public Function1(IConverter converter)
+        {
+            _converter = converter;
+        }
+
+        [FunctionName("GeneratePdf")]
+        public async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
         {
-            log.LogInformation("C# HTTP trigger function processed a request.");
+            log.LogInformation("Generating PDF using DinkToPdf...");
 
-            string name = req.Query["name"];
+            string html = "<h1>Hello from Azure Functions + DinkToPdf!</h1><p>This PDF was generated dynamically.</p>";
 
-            string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            dynamic data = JsonConvert.DeserializeObject(requestBody);
-            name = name ?? data?.name;
+            var doc = new HtmlToPdfDocument()
+            {
+                GlobalSettings = new GlobalSettings
+                {
+                    PaperSize = PaperKind.A4,
+                    Orientation = Orientation.Portrait,
+                    DocumentTitle = "Sample PDF"
+                },
+                Objects = {
+                    new ObjectSettings
+                    {
+                        HtmlContent = html
+                    }
+                }
+            };
 
-            string responseMessage = string.IsNullOrEmpty(name)
-                ? "This HTTP triggered function executed successfully. Pass a name in the query string or in the request body for a personalized response."
-                : $"Hello, {name}. This HTTP triggered function executed successfully.";
+            byte[] pdf = _converter.Convert(doc);
 
-            return new OkObjectResult(responseMessage);
+            return new FileContentResult(pdf, "application/pdf")
+            {
+                FileDownloadName = "generated.pdf"
+            };
         }
     }
 }
