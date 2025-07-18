@@ -19,10 +19,12 @@ steps:
     installationPath: $(Agent.ToolsDirectory)/dotnet
 
 - task: DotNetCoreCLI@2
-  displayName: 'Restore NuGet packages'
+  displayName: 'Publish Azure Function'
   inputs:
-    command: 'restore'
+    command: 'publish'
     projects: '**/*.csproj'
+    arguments: '--configuration $(buildConfiguration) --output $(outputDir)'
+    zipAfterPublish: true
 
 - task: DotNetCoreCLI@2
   displayName: 'Build Azure Function'
