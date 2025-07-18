@@ -13,7 +13,7 @@ steps:
   inputs:
     command: publish
     arguments: '--configuration Release --output publish_output'
-    projects: '*.csproj'
+    projects: '*.Cms.Functions.csproj'
     publishWebProjects: false
     modifyOutputPath: false
     zipAfterPublish: false
