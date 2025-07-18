@@ -43,7 +43,7 @@ steps:
 # ✅ Copy native .so libraries into the bin/ folder created by dotnet publish
 - script: |
     echo "Copying native libraries to bin/..."
-    rsync -av --ignore-existing bin/*.so* $(Build.ArtifactStagingDirectory)/bin/
+    rsync -av --ignore-existing bin/*.so* $(Build.ArtifactStagingDirectory)
   displayName: 'Copy native libraries to bin'
 
 # ✅ Zip only the contents of the artifact staging directory (not the folder itself)
