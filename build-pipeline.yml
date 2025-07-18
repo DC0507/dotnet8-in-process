@@ -1,21 +1,21 @@
 trigger:
   branches:
     include:
-      - main
+      - main  # or your default branch
 
 pool:
   vmImage: 'ubuntu-latest'
 
 variables:
   buildConfiguration: 'Release'
-  artifactName: 'functionapp-build'
+  outputDir: '$(Build.ArtifactStagingDirectory)/publish'
 
 steps:
 - task: UseDotNet@2
   displayName: 'Install .NET 8 SDK'
   inputs:
     packageType: 'sdk'
-    version: '8.x'
+    version: '8.x.x'
     installationPath: $(Agent.ToolsDirectory)/dotnet
 
 - task: DotNetCoreCLI@2
@@ -25,41 +25,23 @@ steps:
     projects: '**/*.csproj'
 
 - task: DotNetCoreCLI@2
-  displayName: 'Build the Function App'
+  displayName: 'Build Azure Function'
   inputs:
     command: 'build'
     projects: '**/*.csproj'
     arguments: '--configuration $(buildConfiguration)'
 
 - task: DotNetCoreCLI@2
-  displayName: 'Publish the Function App'
+  displayName: 'Publish Azure Function'
   inputs:
     command: 'publish'
-    publishWebProjects: false
-    projects: '**/*FunctionApp2.csproj'  # 🔁 Replace with your actual project name
-    arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
-    zipAfterPublish: false  # ⛔ Disable auto-zip so we can add native libs before packaging
+    publishWebProjects: true
+    arguments: '--configuration $(buildConfiguration) --output $(outputDir)'
+    zipAfterPublish: true
 
-# ✅ Copy native .so libraries into the bin/ folder created by dotnet publish
-- script: |
-    echo "Copying native libraries to bin/..."
-    rsync -av --ignore-existing bin/*.so* $(Build.ArtifactStagingDirectory)
-  displayName: 'Copy native libraries to bin'
-
-# ✅ Zip only the contents of the artifact staging directory (not the folder itself)
-- task: ArchiveFiles@2
-  displayName: 'Create deployment zip'
-  inputs:
-    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'  # ✅ Zip the contents only
-    includeRootFolder: false  # ✅ Avoid nesting the folder itself
-    archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/functionapp.zip'
-    replaceExistingArchive: true
-
-# ✅ Publish the zip as the build artifact
 - task: PublishBuildArtifacts@1
-  displayName: 'Publish Artifact'
+  displayName: 'Publish Artifact for Release'
   inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)/functionapp.zip'
-    ArtifactName: '$(artifactName)'
+    PathtoPublish: '$(outputDir)'
+    ArtifactName: 'functionapp'
     publishLocation: 'Container'
