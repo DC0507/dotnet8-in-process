@@ -32,9 +32,9 @@
     </Content>
   </ItemGroup>
 
-  <Target Name="CopyLinuxLibs" AfterTargets="Publish">
-    <Exec Command="XCOPY $(ProjectDir)linux\*.* $(PublishDir)bin\ /Y /I" />
-  </Target>
+<Target Name="CopyLinuxLibs" AfterTargets="Publish">
+  <Exec Command="cp -r $(ProjectDir)linux/* $(PublishDir)bin/" />
+</Target>
 
   <ItemGroup>
     <None Update="local.settings.json">
