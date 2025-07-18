@@ -4,7 +4,7 @@ trigger:
       - main  # or your default branch
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: 'ubuntu-latest'
 steps:
 - script: |
     dotnet restore
