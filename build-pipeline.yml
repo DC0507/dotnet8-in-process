@@ -15,7 +15,7 @@ steps:
   displayName: 'Install .NET 8 SDK'
   inputs:
     packageType: 'sdk'
-    version: '8.x.x'
+    version: '8.0.31'
     installationPath: $(Agent.ToolsDirectory)/dotnet
 
 - task: DotNetCoreCLI@2
