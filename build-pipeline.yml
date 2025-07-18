@@ -4,46 +4,26 @@ trigger:
       - main  # or your default branch
 
 pool:
-  vmImage: 'ubuntu-latest'
-
-variables:
-  buildConfiguration: 'Release'
-  outputDir: '$(Build.ArtifactStagingDirectory)'
-
+  vmImage: 'windows-latest'
 steps:
-- task: UseDotNet@2
-  displayName: 'Install .NET 8 SDK'
-  inputs:
-    packageType: 'sdk'
-    version: '8.0.301'
-    installationPath: $(Agent.ToolsDirectory)/dotnet
-
+- script: |
+    dotnet restore
+    dotnet build --configuration Release
 - task: DotNetCoreCLI@2
-  displayName: 'Publish Azure Function'
   inputs:
-    command: 'publish'
-    projects: '**/*.csproj'
-    arguments: '--configuration $(buildConfiguration) --output $(outputDir)'
-    zipAfterPublish: true
-
-- task: DotNetCoreCLI@2
-  displayName: 'Build Azure Function'
+    command: publish
+    arguments: '--configuration Release --output publish_output'
+    projects: '*.csproj'
+    publishWebProjects: false
+    modifyOutputPath: false
+    zipAfterPublish: false
+- task: ArchiveFiles@2
+  displayName: "Archive files"
   inputs:
-    command: 'build'
-    projects: '**/*.csproj'
-    arguments: '--configuration $(buildConfiguration)'
-
-- task: DotNetCoreCLI@2
-  displayName: 'Publish Azure Function'
-  inputs:
-    command: 'publish'
-    publishWebProjects: true
-    arguments: '--configuration $(buildConfiguration) --output $(outputDir)'
-    zipAfterPublish: true
-
+    rootFolderOrFile: "$(System.DefaultWorkingDirectory)/publish_output"
+    includeRootFolder: false
+    archiveFile: "$(System.DefaultWorkingDirectory)/build$(Build.BuildId).zip"
 - task: PublishBuildArtifacts@1
-  displayName: 'Publish Artifact for Release'
   inputs:
-    PathtoPublish: '$(outputDir)'
-    ArtifactName: 'functionapp'
-    publishLocation: 'Container'
+    PathtoPublish: '$(System.DefaultWorkingDirectory)/build$(Build.BuildId).zip'
+    artifactName: 'drop'
