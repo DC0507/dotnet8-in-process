@@ -1,43 +1,77 @@
 trigger:
   branches:
     include:
-      - main  # or your default branch
+      - main
 
 pool:
   vmImage: 'ubuntu-latest'
 
 steps:
-- task: UseDotNet@2
-  displayName: 'Use .NET 8 SDK'
-  inputs:
-    packageType: 'sdk'
-    version: '8.0.x'
-    installationPath: $(Agent.ToolsDirectory)/dotnet
+  - task: UseDotNet@2
+    displayName: 'Use .NET 8 SDK'
+    inputs:
+      packageType: 'sdk'
+      version: '8.0.x'
+      installationPath: $(Agent.ToolsDirectory)/dotnet
 
-- script: |
-    dotnet restore Cms.Functions.csproj
-    dotnet build Cms.Functions.csproj --configuration Release
-  displayName: 'Restore and Build'
+  - script: |
+      dotnet restore Cms.Functions.csproj
+      dotnet build Cms.Functions.csproj --configuration Release
+    displayName: 'Restore and Build'
 
-- task: DotNetCoreCLI@2
-  displayName: 'Publish Function App'
-  inputs:
-    command: publish
-    projects: 'Cms.Functions.csproj'
-    arguments: '--configuration Release --output publish_output'
-    publishWebProjects: false
-    modifyOutputPath: false
-    zipAfterPublish: false
+  - task: DotNetCoreCLI@2
+    displayName: 'Publish Function App'
+    inputs:
+      command: publish
+      projects: 'Cms.Functions.csproj'
+      arguments: '--configuration Release --output $(Build.BinariesDirectory)/publish_output'
+      publishWebProjects: false
+      modifyOutputPath: false
+      zipAfterPublish: false
 
-- task: ArchiveFiles@2
-  displayName: 'Archive files'
-  inputs:
-    rootFolderOrFile: '$(System.DefaultWorkingDirectory)/publish_output'
-    includeRootFolder: false
-    archiveFile: '$(System.DefaultWorkingDirectory)/build$(Build.BuildId).zip'
+  - task: ArchiveFiles@2
+    displayName: 'Archive Published Output'
+    inputs:
+      rootFolderOrFile: '$(Build.BinariesDirectory)/publish_output'
+      includeRootFolder: false
+      archiveType: 'zip'
+      archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+      replaceExistingArchive: true
 
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish Artifact'
-  inputs:
-    PathtoPublish: '$(System.DefaultWorkingDirectory)/build$(Build.BuildId).zip'
-    artifactName: 'drop'
+  - task: ExtractFiles@1
+    displayName: 'Extract Archive'
+    inputs:
+      archiveFilePatterns: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+      destinationFolder: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId)'
+      cleanDestinationFolder: false
+      overwriteExistingFiles: false
+
+  - task: PowerShell@2
+    displayName: 'Remove Original Zip'
+    inputs:
+      targetType: 'inline'
+      script: 'Remove-Item "$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip"'
+
+  - task: CopyFiles@2
+    displayName: 'Inject Linux Files'
+    inputs:
+      SourceFolder: '$(System.DefaultWorkingDirectory)/linux'
+      Contents: '**'
+      TargetFolder: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId)/bin'
+      OverWrite: true
+
+  - task: ArchiveFiles@2
+    displayName: 'Re-Archive Modified Output'
+    inputs:
+      rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId)'
+      includeRootFolder: false
+      archiveType: 'zip'
+      archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
+      replaceExistingArchive: true
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Final Artifact'
+    inputs:
+      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      ArtifactName: 'drop'
+      publishLocation: 'Container'
