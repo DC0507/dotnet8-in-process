@@ -46,12 +46,6 @@ steps:
       cleanDestinationFolder: false
       overwriteExistingFiles: false
 
-  - task: PowerShell@2
-    displayName: 'Remove Original Zip'
-    inputs:
-      targetType: 'inline'
-      script: 'Remove-Item "$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip"'
-
   - task: CopyFiles@2
     displayName: 'Inject Linux Files'
     inputs:
@@ -61,16 +55,16 @@ steps:
       OverWrite: true
 
   - task: ArchiveFiles@2
-    displayName: 'Archive files'
+    displayName: 'Re-Archive Modified Output'
     inputs:
-      rootFolderOrFile: '$(Build.BinariesDirectory)/publish_output'
+      rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId)'
       includeRootFolder: false
+      archiveType: 'zip'
       archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
       replaceExistingArchive: true
 
   - task: PublishBuildArtifacts@1
-    displayName: 'Publish Artifact'
+    displayName: 'Publish Final Artifact'
     inputs:
       PathtoPublish: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip'
       artifactName: 'drop'
-
