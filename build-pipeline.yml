@@ -55,7 +55,7 @@ steps:
   - task: CopyFiles@2
     displayName: 'Inject Linux Files'
     inputs:
-      SourceFolder: '$(System.DefaultWorkingDirectory)/linux'
+      SourceFolder: '$(System.DefaultWorkingDirectory)/Cms.Functions/linux'
       Contents: '**'
       TargetFolder: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId)/bin'
       OverWrite: true
