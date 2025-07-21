@@ -70,9 +70,8 @@ steps:
       replaceExistingArchive: true
 
   - task: PublishBuildArtifacts@1
-  displayName: 'Publish Artifact'
-  inputs:
-    PathtoPublish: '$(System.DefaultWorkingDirectory)/build$(Build.BuildId).zip'
-    artifactName: 'drop'
-    targetPath: '$(Build.ArtifactStagingDirectory)/_CMS Function'
-
+    displayName: 'Publish Artifact'
+    inputs:
+      PathtoPublish: '$(System.DefaultWorkingDirectory)/build$(Build.BuildId).zip'
+      artifactName: 'drop'
+      targetPath: '$(Build.ArtifactStagingDirectory)/_CMS Function'
