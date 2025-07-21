@@ -73,5 +73,5 @@ steps:
     displayName: 'Publish Final Artifact'
     inputs:
       PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-      ArtifactName: 'drop'
+      artifactName: '_CMS Function'
       publishLocation: 'Container'
