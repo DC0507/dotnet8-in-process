@@ -37,7 +37,7 @@ steps:
 
 - task: CopyFiles@2
   inputs:
-    SourceFolder: '$(System.DefaultWorkingDirectory)/Cms.Functions/linux'
+    SourceFolder: '$(System.DefaultWorkingDirectory)/linux'
     Contents: '**'
     TargetFolder: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId)/bin'
     OverWrite: true
